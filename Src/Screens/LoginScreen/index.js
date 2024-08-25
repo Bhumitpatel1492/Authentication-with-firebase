@@ -21,6 +21,7 @@ const Login = ({ navigation }) => {
         setMessage('Login successful!');
         setVisible(true);
         hideToast();
+        navigation.navigate('Home')
       })
       .catch(error => {
         if (error.code === 'auth/email-already-in-use') {
@@ -50,8 +51,8 @@ const Login = ({ navigation }) => {
 
   const hideToast = () => {
     setTimeout(() => {
-      // setVisible(false);
-    }, 3000); // Hide the toast after 3 seconds
+      setVisible(false);
+    }, 1500);
   };
 
   const registeruser = () => {
