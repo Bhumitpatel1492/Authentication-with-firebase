@@ -20,7 +20,7 @@ const DrawerContent = (props) => {
         // icon={({ color, size }) => (
         //   <MaterialIcons name="home" color={color} size={size} />
         // )}
-        onPress={() => props.navigation.navigate('Home')}
+        onPress={() => props.navigation.navigate('HomeScreen')}
       />
 
       <DrawerItem

@@ -21,7 +21,7 @@ const Login = ({ navigation }) => {
         setMessage('Login successful!');
         setVisible(true);
         hideToast();
-        navigation.navigate('Home')
+        navigation.navigate('HomeScreen')
       })
       .catch(error => {
         if (error.code === 'auth/email-already-in-use') {
