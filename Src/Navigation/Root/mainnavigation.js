@@ -9,6 +9,8 @@ import HomeScreen from '../../Screens/HomeScreen';
 import ProfileScreen from '../../Screens/ProfileScreen/Index';
 import SettingsScreen from '../../Screens/SettingsScreen/Index';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Image } from 'react-native';
+import Images from '../../Utils/images';
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
@@ -20,18 +22,18 @@ const TabNavigator = () => {
       screenOptions={({ route }) => ({
         headerShown: false, // Hide the header
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
 
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          } else if (route.name === 'Settings') {
-            iconName = focused ? 'settings' : 'settings-outline';
+
+          if (route.name === "Home") {
+            return <Image source={focused ? Images.Ic_Home_in : Images.Ic_Home_out} style={{ width: 20, height: 20, }} resizeMode='contain' />;
+          } else if (route.name === "Profile") {
+            return <Image resizeMode='contain' source={focused ? Images.Ic_Profile_in : Images.Ic_Profile_out} style={{ width: 20, height: 20, }} />;
+          } else if (route.name === "Settings") {
+            return <Image resizeMode='contain' source={focused ? Images.Ic_Setting_in : Images.Ic_Setting_out} style={{ width: 20, height: 20, }} />;
           }
 
-          // You can return any component that you like here!
-          return <Ionicons name={iconName} size={size} color={color} />;
+
+          return null;
         },
         tabBarActiveTintColor: 'tomato',
         tabBarInactiveTintColor: 'gray',
