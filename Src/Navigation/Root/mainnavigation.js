@@ -11,6 +11,7 @@ import SettingsScreen from '../../Screens/SettingsScreen/Index';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Image } from 'react-native';
 import Images from '../../Utils/images';
+import SpleshScreen from '../../Screens/SpleshScreen';
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 const Tab = createBottomTabNavigator();
@@ -64,7 +65,12 @@ const TabNavigator = () => {
 const MainNavigation = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
+      <Stack.Navigator initialRouteName="Splesh">
+        <Stack.Screen
+          options={{ headerShadowVisible: false }}
+          name="Splesh"
+          component={SpleshScreen}
+        />
         <Stack.Screen
           options={{ headerShadowVisible: false }}
           name="Login"

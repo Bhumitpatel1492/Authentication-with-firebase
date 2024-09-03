@@ -1,10 +1,11 @@
 // import libraries
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SectionList, Image } from 'react-native';
+import { View, Text, StyleSheet, SectionList, Image, Animated } from 'react-native';
 
 // create a component
 const HomeScreen = () => {
   const [listData, setListData] = useState([]);
+  const [fadeAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
     fetch('https://www.themealdb.com/api/json/v1/1/categories.php')
@@ -15,19 +16,28 @@ const HomeScreen = () => {
           data: [category],
         }));
         setListData(sections);
+        fadeIn();
       })
       .catch(error => {
         console.log('Error fetching data:', error);
       });
   }, []);
 
+  const fadeIn = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const renderItem = ({ item }) => (
-    <View style={styles.item}>
+    <Animated.View style={[styles.item, { opacity: fadeAnim }]}>
       <Image source={{ uri: item.strCategoryThumb }} style={styles.image} />
       <View style={styles.textContainer}>
         <Text style={styles.description}>{item.strCategoryDescription}</Text>
       </View>
-    </View>
+    </Animated.View>
   );
 
   return (
@@ -51,39 +61,47 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 50,
+    paddingTop: 30,
+    backgroundColor: '#f0f4f8',
   },
   headerContainer: {
-    backgroundColor: '#f4f4f4',
-    padding: 10,
+    backgroundColor: '#6200EE',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginHorizontal: 10,
+    marginBottom: 5,
   },
   header: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   item: {
     padding: 15,
-    margin: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    alignItems: 'center',
+    marginVertical: 8,
+    marginHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    elevation: 4, // Adds a shadow on Android
+    shadowColor: '#000', // iOS shadow
+    shadowOffset: { width: 0, height: 2 }, // iOS shadow
+    shadowOpacity: 0.2, // iOS shadow
+    shadowRadius: 4, // iOS shadow
   },
   image: {
-    width: 250,
-    height: 250,
-    justifyContent: "center"
-    // marginRight: 10,
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
   },
   textContainer: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    marginTop: 10,
   },
   description: {
     fontSize: 14,
-    color: '#555',
+    color: '#333',
+    textAlign: 'left',
+    marginHorizontal: 10
   },
 });
 

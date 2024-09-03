@@ -1,12 +1,26 @@
 //import liraries
-import React, { Component } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { Component, useEffect } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import auth from '@react-native-firebase/auth';
 
 // create a component
-const SpleshScreen = () => {
+const SpleshScreen = ({ navigation }) => {
+  useEffect(() => {
+    const checkAuthState = async () => {
+      const user = auth().currentUser;
+      if (user) {
+        navigation.navigate('HomeScreen')
+      } else {
+        navigation.navigate('Login')
+
+      }
+    }
+    checkAuthState();
+
+  }, [navigation])
   return (
     <View style={styles.container}>
-      <Text>SpleshScreen</Text>
+      <ActivityIndicator size="large" color="#0000ff" />
     </View>
   );
 };
@@ -17,7 +31,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#2c3e50',
   },
 });
 
