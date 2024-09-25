@@ -42,8 +42,10 @@ const Login = ({ navigation }) => {
           setMessage('Incorrect password!');
           setVisible(true);
         } else {
+          console.log('errorrr---->', error);
+
           setIsSuccess(false);
-          setMessage('Login failed! Please try again.');
+          setMessage('Login failed! Please try again.', error);
           setVisible(true);
         }
         hideToast();
