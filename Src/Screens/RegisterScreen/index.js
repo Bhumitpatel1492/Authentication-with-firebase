@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, TextInput, TouchableOpacity, Image, KeyboardAvoidingView } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import CustomToastMessage from '../../Components/CustomToastMsg';
-
-
+import uuid from 'react-native-uuid';
+import firestore from '@react-native-firebase/firestore'
 
 // create a component
 const Register = ({ navigation }) => {
@@ -47,43 +47,59 @@ const Register = ({ navigation }) => {
     }
 
     else {
-      auth()
-        .createUserWithEmailAndPassword(Email, password,)
-        .then(() => {
-          setIsSuccess(true);
-          setMessage('Register successful!');
-          setVisible(true);
-          hideToast();
-          navigation.navigate('Login')
-        })
-        .catch(error => {
-          if (error.code === 'auth/email-already-in-use') {
-            setIsSuccess(false);
-            setMessage('That email address is already in use!');
-            setVisible(true);
-          } else if (error.code === 'auth/invalid-email') {
-            setIsSuccess(false);
-            setMessage('That email address is invalid!');
-            setVisible(true);
+      const userId = uuid.v4()
+      firestore().collection("users").doc(userId).set({
+        name: firstname + "" + Lastname,
+        email: Email,
+        password: password,
+        phonenumber: Phonenumber,
+        userId: userId
+      }).then((res) => {
+        console.log('user is Register')
+        setIsSuccess(true);
+        setMessage(' user is Register Succesfull');
+        setVisible(true);
 
-          } else if (error.code === 'auth/wrong-password') {
-            setIsSuccess(false);
-            setMessage('Incorrect password!');
-            setVisible(true);
-          } else {
-            setIsSuccess(false);
-            setMessage('Login failed! Please try again.');
-            setVisible(true);
-          }
-          hideToast();
+      })
+      hideToast()
+      navigation.goBack('')
+      // auth()
+      //   .createUserWithEmailAndPassword(Email, password,)
+      //   .then(() => {
+      //     setIsSuccess(true);
+      //     setMessage('Register successful!');
+      //     setVisible(true);
+      //     hideToast();
+      //     navigation.navigate('Login')
+      //   })
+      //   .catch(error => {
+      //     if (error.code === 'auth/email-already-in-use') {
+      //       setIsSuccess(false);
+      //       setMessage('That email address is already in use!');
+      //       setVisible(true);
+      //     } else if (error.code === 'auth/invalid-email') {
+      //       setIsSuccess(false);
+      //       setMessage('That email address is invalid!');
+      //       setVisible(true);
 
-        });
+      //     } else if (error.code === 'auth/wrong-password') {
+      //       setIsSuccess(false);
+      //       setMessage('Incorrect password!');
+      //       setVisible(true);
+      //     } else {
+      //       setIsSuccess(false);
+      //       setMessage('Login failed! Please try again.');
+      //       setVisible(true);
+      //     }
+      //     hideToast();
+
+      //   });
     }
   };
 
   const hideToast = () => {
     setTimeout(() => {
-      // setVisible(false);
+      setVisible(false);
     }, 3000); // Hide the toast after 3 seconds
   };
 

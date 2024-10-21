@@ -1,25 +1,25 @@
-//import liraries
-import React, { Component } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, Image } from 'react-native';
 
-// create a component
 const SpleshScreen = () => {
   return (
     <View style={styles.container}>
-      <Text>SpleshScreen</Text>
+      <Image
+        source={require('../../../Assets/Images/chat.png')}
+        style={{ height: 300, width: 300 }}
+        resizeMode="contain"
+      />
     </View>
   );
 };
 
-// define your styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#2c3e50',
+    backgroundColor: '#fff',
   },
 });
 
-//make this component available to the app
 export default SpleshScreen;

@@ -1,11 +1,11 @@
-//import libraries
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, KeyboardAvoidingView } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import CustomToastMessage from '../../Components/CustomToastMsg';
+import firestore from '@react-native-firebase/firestore'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-// create a component
 const Login = ({ navigation }) => {
   const [Email, SetEmail] = useState('');
   const [password, SetPassword] = useState('');
@@ -13,45 +13,60 @@ const Login = ({ navigation }) => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [message, setMessage] = useState('');
 
-  const loginuser = () => {
-    auth()
-      .signInWithEmailAndPassword(Email, password)
-      .then(() => {
-        setIsSuccess(true);
-        setMessage('Login successful!');
+
+  const loginuser = async () => {
+    if (!Email || !password) {
+      setMessage('Email and Password are required');
+      setIsSuccess(false);
+      setVisible(true);
+      hideToast();
+      return;
+    }
+  
+    try {
+      const res = await firestore()
+        .collection('users')
+        .where('email', '==', Email)
+        .get();
+  
+      if (res.docs.length > 0) {
+        const userData = res.docs[0].data();
+        goTonextScreen(userData.name, userData.email, userData.userId);
+      } else {
+        setIsSuccess(false);
+        setMessage('User not found');
         setVisible(true);
         hideToast();
-      })
-      .catch(error => {
-        if (error.code === 'auth/email-already-in-use') {
-          setIsSuccess(false);
-          setMessage('That email address is already in use!');
-          setVisible(true);
-        } else if (error.code === 'auth/invalid-email') {
-          setIsSuccess(false);
-          setMessage('That email address is invalid!');
-          setVisible(true);
-        } else if (error.code === 'auth/user-not-found') {
-          setIsSuccess(false);
-          setMessage('No user found with this email!');
-          setVisible(true);
-        } else if (error.code === 'auth/wrong-password') {
-          setIsSuccess(false);
-          setMessage('Incorrect password!');
-          setVisible(true);
-        } else {
-          setIsSuccess(false);
-          setMessage('Login failed! Please try again.');
-          setVisible(true);
-        }
-        hideToast();
-      });
+      }
+    } catch (error) {
+      setIsSuccess(false);
+      setMessage('An error occurred while fetching user');
+      setVisible(true);
+      hideToast();
+    }
   };
+  
 
+
+  const goTonextScreen = async (name, email, userId) => {
+    try {
+        await AsyncStorage.setItem('NAME', name);
+        await AsyncStorage.setItem('EMAIL', email);
+        await AsyncStorage.setItem('userId', userId);
+        console.log('User details saved successfully');
+
+        // Pass userId as a parameter when navigating
+        navigation.navigate('Home', { userId }); // Pass userId here
+    } catch (error) {
+        console.error('Error saving user details: ', error);
+    }
+};
+
+  
   const hideToast = () => {
     setTimeout(() => {
-      // setVisible(false);
-    }, 3000); // Hide the toast after 3 seconds
+      setVisible(false);
+    }, 1500);
   };
 
   const registeruser = () => {
@@ -89,7 +104,7 @@ const Login = ({ navigation }) => {
         />
         <TouchableOpacity
           style={styles.loginButton}
-          onPress={loginuser}
+          onPress={() => loginuser()}
         >
           <Text style={styles.loginButtonText}>Login</Text>
         </TouchableOpacity>
@@ -102,7 +117,7 @@ const Login = ({ navigation }) => {
       </KeyboardAvoidingView>
     </View>
   );
-};
+}
 
 // define your styles
 const styles = StyleSheet.create({
@@ -130,5 +145,4 @@ const styles = StyleSheet.create({
   },
 });
 
-//make this component available to the app
 export default Login;
