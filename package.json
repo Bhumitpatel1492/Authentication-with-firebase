@@ -4,10 +4,24 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
+    "android-release": "react-native run-android --variant=release",
+    "android-log": "react-native log-android",
     "ios": "react-native run-ios",
-    "start": "react-native start",
-    "test": "jest",
-    "lint": "eslint ."
+    "ios-log": "react-native log-ios",
+    "android-clean": "cd android && ./gradlew clean",
+    "android-bundle": "react-native bundle --platform android --dev false --entry-file ./index.js --bundle-output ./android/app/src/main/assets/index.android.bundle --sourcemap-output ./android/app/src/main/assets/index.android.map --assets-dest ./android/app/src/main/res/",
+    "android-bundle-new": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res",
+    "android-build-debug": "react-native bundle --platform android --dev false --entry-file ./index.js --bundle-output ./android/app/src/main/assets/index.android.bundle --sourcemap-output ./android/app/src/main/assets/index.android.map --assets-dest ./android/app/src/main/res/ && cd android && ./gradlew assembleDebug",
+    "android-build-release": "react-native bundle --platform android --dev false --entry-file ./index.js --bundle-output ./android/app/src/main/assets/index.android.bundle --sourcemap-output ./android/app/src/main/assets/index.android.map --assets-dest ./android/app/src/main/res/ && cd android && ./gradlew assembleRelease",
+    "android-build-release-direct": "cd android && ./gradlew assembleRelease",
+    "android-build-release-direct-windows": "cd android && gradlew assembleRelease",
+    "create-debug-build": "rm -f android/app/src/main/assets/index.android.bundle && react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res && cd android/ && ./gradlew clean && ./gradlew assembleDebug",
+    "android-debug-build-windows": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --sourcemap-output android/app/src/main/assets/index.android.map --assets-dest android/app/src/main/res && cd android && gradlew assembleDebug",
+    "link": "react-native-asset",
+    "ios-bundle": "react-native bundle --dev false --entry-file index.js --platform ios --bundle-output ios/main.jsbundle --assets-dest ios/res",
+    "release-bundle": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/build/intermediates/res/merged/release/ && rm -rf android/app/src/main/res/drawable-* && rm -rf android/app/src/main/res/raw/* && cd android && ./gradlew bundleRelease && cd ..",
+    "release-apk": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res && cd android && ./gradlew assembleRelease && cd ..",
+    "debug-apk": "rimraf android/app/src/main/assets/index.android.bundle && npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/build/intermediates/res/merged/release/ && rimraf android/app/src/main/res/drawable && rimraf android/app/src/main/res/raw && cd android && gradlew assembleDebug && cd .."
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.0.0",

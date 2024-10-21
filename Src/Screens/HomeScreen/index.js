@@ -9,66 +9,62 @@ import {
   KeyboardAvoidingView,
   Image,
 } from 'react-native';
-import firestore from '@react-native-firebase/firestore'; // Import Firestore
-import storage from '@react-native-firebase/storage'; // Import Storage
-import { launchImageLibrary } from 'react-native-image-picker'; // Import Image Picker
+import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
+import { launchImageLibrary } from 'react-native-image-picker';
 
-const ChatScreen = () => {
+const Home = ({ route, navigation }) => {
+  
+  const { userId } = route.params; // Get the userId from route params
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const userId = 'user1'; // Replace with actual user ID or get it from auth context
-  const [userLastSeen, setUserLastSeen] = useState({}); // Store last seen of users
+  const [userLastSeen, setUserLastSeen] = useState({});
 
-  // Fetch messages and user last seen from Firestore on component mount
   useEffect(() => {
     const unsubscribe = firestore()
       .collection('messages')
-      .orderBy('createdAt', 'desc') // Order messages by timestamp
+      .where('sender', 'in', [userId, 'user1']) // Fetch messages for the specific user
+      .orderBy('createdAt', 'desc')
       .onSnapshot(snapshot => {
-        const fetchedMessages = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
+        const fetchedMessages = snapshot?.docs?.map(doc => ({
+          id: doc?.id,
+          ...doc?.data(),
         }));
         setMessages(fetchedMessages);
       });
 
-    // Fetch last seen for all users (you can optimize this based on your use case)
     const fetchLastSeen = async () => {
-      const usersSnapshot = await firestore().collection('users').get(); // Get all users
+      const usersSnapshot = await firestore().collection('users').get();
       const lastSeenData = {};
       usersSnapshot.forEach(doc => {
-        lastSeenData[doc.id] = doc.data().lastSeen; // Store last seen
+        lastSeenData[doc.id] = doc.data().lastSeen;
       });
-      setUserLastSeen(lastSeenData); // Set last seen state
+      setUserLastSeen(lastSeenData);
     };
 
     fetchLastSeen();
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []);
+  }, [userId]); // Re-run effect when userId changes
 
-  // Function to send a new message and update last seen
   const handleSend = async () => {
     if (newMessage.trim()) {
       const messageData = {
         text: newMessage,
-        sender: userId, // Replace with actual sender ID
+        sender: userId,
         createdAt: firestore.FieldValue.serverTimestamp(),
       };
 
-      await firestore().collection('messages').add(messageData); // Add new message to Firestore
+      await firestore().collection('messages').add(messageData);
 
-      // Update last seen
       await firestore().collection('users').doc(userId).update({
-        lastSeen: new Date().toISOString(), // Update last seen to current time
+        lastSeen: new Date().toISOString(),
       });
 
-      setNewMessage(''); // Clear input field
+      setNewMessage('');
     }
   };
 
-  // Function to handle image selection and upload
   const handleImageSend = async () => {
     const options = {
       mediaType: 'photo',
@@ -85,31 +81,25 @@ const ChatScreen = () => {
         const imageUri = source.uri;
         const fileName = source.fileName;
 
-        // Upload the image to Firebase Storage
         const reference = storage().ref(`chatImages/${fileName}`);
         await reference.putFile(imageUri);
-
-        // Get the URL of the uploaded image
         const imageUrl = await reference.getDownloadURL();
 
-        // Create a message with the image URL
         const messageData = {
           image: imageUrl,
-          sender: userId, // Replace with actual sender ID
+          sender: userId,
           createdAt: firestore.FieldValue.serverTimestamp(),
         };
 
-        await firestore().collection('messages').add(messageData); // Add new message to Firestore
+        await firestore().collection('messages').add(messageData);
 
-        // Update last seen
         await firestore().collection('users').doc(userId).update({
-          lastSeen: new Date().toISOString(), // Update last seen to current time
+          lastSeen: new Date().toISOString(),
         });
       }
     });
   };
 
-  // Function to format the last seen timestamp
   const formatLastSeen = (timestamp) => {
     if (!timestamp) return 'Offline';
     const lastSeenDate = new Date(timestamp);
@@ -120,7 +110,7 @@ const ChatScreen = () => {
     if (seconds < 60) return 'Online';
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-    return lastSeenDate.toLocaleDateString(); // Show date if last seen is more than a day ago
+    return lastSeenDate.toLocaleDateString();
   };
 
   return (
@@ -138,7 +128,7 @@ const ChatScreen = () => {
           </View>
         )}
         contentContainerStyle={styles.messageList}
-        inverted // To display the latest messages at the bottom
+        inverted
       />
       <View style={styles.inputContainer}>
         <TextInput
@@ -154,7 +144,6 @@ const ChatScreen = () => {
           <Text style={styles.sendButtonText}>📷</Text>
         </TouchableOpacity>
       </View>
-      {/* Display last seen status */}
       <View style={styles.lastSeenContainer}>
         {Object.keys(userLastSeen).map((userId) => (
           <Text key={userId} style={styles.lastSeenText}>
@@ -234,4 +223,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ChatScreen;
+export default Home;

@@ -14,35 +14,55 @@ const Login = ({ navigation }) => {
   const [message, setMessage] = useState('');
 
 
-  const loginuser = () => {
-    firestore()
-      .collection('users')
-      .where('email', '==', Email)
-      .get()
-      .then((res => {
-        setVisible(false);
-        if (res?.docs != []) {
-          console.log( 'Json---->',JSON.stringify(res?.docs[0]?.data()));
-          goTonextScreen(res?.docs[0]?.data().name, res.docs[0]?.data()?.email, res?.docs[0]?.data()?.userId);
-        } else {
-          console.log( 'Json--else-->',JSON?.stringify(res?.docs[0]?.data()));
-
-          setIsSuccess(false);
-          setMessage('User not found');
-          setVisible(true);
-        }
-      }))
-  }
+  const loginuser = async () => {
+    if (!Email || !password) {
+      setMessage('Email and Password are required');
+      setIsSuccess(false);
+      setVisible(true);
+      hideToast();
+      return;
+    }
+  
+    try {
+      const res = await firestore()
+        .collection('users')
+        .where('email', '==', Email)
+        .get();
+  
+      if (res.docs.length > 0) {
+        const userData = res.docs[0].data();
+        goTonextScreen(userData.name, userData.email, userData.userId);
+      } else {
+        setIsSuccess(false);
+        setMessage('User not found');
+        setVisible(true);
+        hideToast();
+      }
+    } catch (error) {
+      setIsSuccess(false);
+      setMessage('An error occurred while fetching user');
+      setVisible(true);
+      hideToast();
+    }
+  };
+  
 
 
   const goTonextScreen = async (name, email, userId) => {
-    await AsyncStorage.setItem('NAME', name)
-    await AsyncStorage.setItem('EMAIL', email)
-    await AsyncStorage.setItem('userId', userId)
-    navigation.navigate('Homescreen')
+    try {
+        await AsyncStorage.setItem('NAME', name);
+        await AsyncStorage.setItem('EMAIL', email);
+        await AsyncStorage.setItem('userId', userId);
+        console.log('User details saved successfully');
 
-  }
+        // Pass userId as a parameter when navigating
+        navigation.navigate('Home', { userId }); // Pass userId here
+    } catch (error) {
+        console.error('Error saving user details: ', error);
+    }
+};
 
+  
   const hideToast = () => {
     setTimeout(() => {
       setVisible(false);

@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View } from 'react-native';
 import auth from '@react-native-firebase/auth';
 
 import Login from '../../Screens/LoginScreen';
 import Register from '../../Screens/RegisterScreen';
-import HomeScreen from '../../Screens/HomeScreen';
+import HomeScreen from '../../Screens/HomeScreen/index';
 import ChatScreen from '../../Screens/ChatScreen/Index';
 import SpleshScreen from '../../Screens/SpleshScreen';
 
@@ -28,6 +27,10 @@ const AuthStack = () => {
     <Stack.Navigator initialRouteName="Login">
       <Stack.Screen name="Login" component={Login} options={{ headerShadowVisible: false }} />
       <Stack.Screen name="Register" component={Register} options={{ headerShadowVisible: false }} />
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="ChatScreen" component={ChatScreen} />
+
+
     </Stack.Navigator>
   );
 };
@@ -35,12 +38,12 @@ const AuthStack = () => {
 const HomeStack = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="HomeScreen" component={HomeScreen} />
       <Stack.Screen name="ChatScreen" component={ChatScreen} />
     </Stack.Navigator>
   );
 };
 
+// Root Navigator for handling the splash screen, auth state, and navigation
 const RootNavigator = () => {
   const { user, setUser } = useContext(AuthenticatedUserContext);
   const [splashVisible, setSplashVisible] = useState(true);
@@ -49,6 +52,7 @@ const RootNavigator = () => {
     const splashTimeout = setTimeout(() => {
       setSplashVisible(false);
     }, 1200);
+
     const unsubscribe = auth().onAuthStateChanged((authenticatedUser) => {
       setUser(authenticatedUser || null);
     });
@@ -63,7 +67,16 @@ const RootNavigator = () => {
     return <SpleshScreen />;
   }
 
-  return user ? <HomeStack /> : <AuthStack />;
+  // Show HomeStack if user is authenticated, else show AuthStack
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {user ? (
+        <Stack.Screen name="HomeStack" component={HomeStack} />
+      ) : (
+        <Stack.Screen name="AuthStack" component={AuthStack} />
+      )}
+    </Stack.Navigator>
+  );
 };
 
 const MainNavigation = () => {
