@@ -1,226 +1,108 @@
-//import libraries
 import React, { useState } from 'react';
-import { ScrollView, View, Text, StyleSheet, TextInput, TouchableOpacity, Image, KeyboardAvoidingView } from 'react-native';
-import auth from '@react-native-firebase/auth';
-import CustomToastMessage from '../../Components/CustomToastMsg';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView } from 'react-native';
 import uuid from 'react-native-uuid';
-import firestore from '@react-native-firebase/firestore'
+import auth from '@react-native-firebase/auth';
+import database from '@react-native-firebase/database';
+import CustomToastMessage from '../../Components/CustomToastMsg';
 
-// create a component
 const Register = ({ navigation }) => {
-  const [firstname, setfirstname] = useState('');
-  const [Lastname, setLastname] = useState('');
-  const [Phonenumber, setPhoneNumber] = useState('');
-  const [Email, SetEmail] = useState('');
-  const [password, SetPassword] = useState('');
+  const [firstname, setFirstname] = useState('');
+  const [lastname, setLastname] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [phonenumber, setPhoneNumber] = useState('');
   const [isVisible, setVisible] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [message, setMessage] = useState('');
-  const [error, setError] = useState({
-    firstname: '',
-    lastname: '',
-    Email: '',
-    password: '',
-    Phonenumber: ''
-  })
+  const [error, setError] = useState({});
 
-  const registeruser = () => {
-    if (error.firstname?.length == 0) {
-      setError(prevError => ({ ...prevError, firstname: 'Enter first name' }))
-    } else if (error.lastname?.length == 0) {
-      setError(prevError => ({
-        ...prevError, lastname: 'Enter Last name'
-      }))
-    } else if (error.Email?.length == 0) {
-      setError(prevError => ({
-        ...prevError, Email: 'Enter Email'
-      }))
-    } else if (error.Phonenumber?.length == 0) {
-      setError(prevError => ({
-        ...prevError, Phonenumber: 'Enter Phone number'
-      }))
-    }
-    else if (error.password?.length == 0) {
-      setError(prevError => ({
-        ...prevError, password: 'Enter Password '
-      }))
-    }
+  const validateInputs = () => {
+    let errors = {};
+    if (!firstname.trim()) errors.firstname = 'Enter first name';
+    if (!lastname.trim()) errors.lastname = 'Enter last name';
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) errors.email = 'Enter a valid email';
+    if (!password.trim() || password.length < 6) errors.password = 'Password must be at least 6 characters';
+    if (!phonenumber.trim() || phonenumber.length !== 10) errors.phonenumber = 'Enter a valid 10-digit phone number';
+    setError(errors);
+    return Object.keys(errors).length === 0;
+  };
 
-    else {
-      const userId = uuid.v4()
-      firestore().collection("users").doc(userId).set({
-        name: firstname + "" + Lastname,
-        email: Email,
-        password: password,
-        phonenumber: Phonenumber,
-        userId: userId
-      }).then((res) => {
-        console.log('user is Register')
-        setIsSuccess(true);
-        setMessage(' user is Register Succesfull');
-        setVisible(true);
+  const registerUser = async () => {
+    if (!validateInputs()) return;
 
-      })
-      hideToast()
-      navigation.goBack('')
-      // auth()
-      //   .createUserWithEmailAndPassword(Email, password,)
-      //   .then(() => {
-      //     setIsSuccess(true);
-      //     setMessage('Register successful!');
-      //     setVisible(true);
-      //     hideToast();
-      //     navigation.navigate('Login')
-      //   })
-      //   .catch(error => {
-      //     if (error.code === 'auth/email-already-in-use') {
-      //       setIsSuccess(false);
-      //       setMessage('That email address is already in use!');
-      //       setVisible(true);
-      //     } else if (error.code === 'auth/invalid-email') {
-      //       setIsSuccess(false);
-      //       setMessage('That email address is invalid!');
-      //       setVisible(true);
+    try {
+      // Firebase Authentication
+      const userCredential = await auth().createUserWithEmailAndPassword(email, password);
+      const userId = userCredential.user.uid;
 
-      //     } else if (error.code === 'auth/wrong-password') {
-      //       setIsSuccess(false);
-      //       setMessage('Incorrect password!');
-      //       setVisible(true);
-      //     } else {
-      //       setIsSuccess(false);
-      //       setMessage('Login failed! Please try again.');
-      //       setVisible(true);
-      //     }
-      //     hideToast();
+      // Realtime Database
+      const userData = {
+        name: `${firstname} ${lastname}`,
+        email,
+        phonenumber,
+        userId,
+      };
 
-      //   });
+      await database().ref(`/users/${userId}`).set(userData);
+
+      setIsSuccess(true);
+      setMessage('User registered successfully!');
+      setVisible(true);
+      hideToast();
+      navigation.goBack();
+    } catch (error) {
+      console.error('Registration Error:', error);
+      setIsSuccess(false);
+      setMessage(error.message || 'Registration failed');
+      setVisible(true);
+      hideToast();
     }
   };
 
   const hideToast = () => {
     setTimeout(() => {
       setVisible(false);
-    }, 3000); // Hide the toast after 3 seconds
+    }, 3000);
   };
-
-
 
   return (
     <ScrollView style={{ flex: 1 }}>
       <View style={styles.container}>
         <KeyboardAvoidingView>
-          <View>
-            <Image
-              source={require('../../../Assets/Images/login2.png')}
-              resizeMode='contain'
-              style={{ height: 200, width: 340, justifyContent: "center" }}
-            />
-          </View>
-          <TextInput
-            value={firstname}
-            onChangeText={txt => setfirstname(txt)}
-            placeholder='Enter first Name *'
-            style={styles.input}
-          />
-          {error?.firstname ?
-            <Text style={styles.errortxt}>
-              {error.firstname}
-            </Text> : null
-          }
-          <TextInput
-            value={Lastname}
-            onChangeText={txt => setLastname(txt)}
-            placeholder='Enter Last Name *'
-            style={styles.input}
-          />
-          {error?.lastname ?
-            <Text style={styles.errortxt}>
-              {error.lastname}
-            </Text> : null
-          }
+          <Image source={require('../../../Assets/Images/login2.png')} resizeMode="contain" style={styles.image} />
+          <TextInput value={firstname} onChangeText={setFirstname} placeholder="Enter First Name *" style={styles.input} />
+          {error.firstname && <Text style={styles.errorText}>{error.firstname}</Text>}
 
-          <TextInput
-            value={Email}
-            onChangeText={txt => SetEmail(txt)}
-            placeholder='Enter Email *'
-            style={styles.input}
-          />
-          {error?.Email ?
-            <Text style={styles.errortxt}>
-              {error.Email}
-            </Text> : null
-          }
-          <TextInput
-            value={Phonenumber}
-            onChangeText={txt => setPhoneNumber(txt)}
-            placeholder='Enter Phone Number *'
-            style={styles.input}
-            maxLength={10}
-            keyboardType='number-pad'
-          />
-          {error?.Phonenumber ?
-            <Text style={styles.errortxt}>
-              {error.Phonenumber}
-            </Text> : null
-          }
-          <TextInput
-            value={password}
-            onChangeText={txt => SetPassword(txt)}
-            placeholder='Enter Password *'
-            secureTextEntry={true}
-            style={styles.input}
-          />
-          {error?.password ?
-            <Text style={styles.errortxt}>
-              {error.password}
-            </Text> : null
-          }
-          <CustomToastMessage
-            visible={isVisible}
-            isSuccess={isSuccess}
-            message={message}
-            onClose={() => setVisible(false)}
-          />
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={registeruser}
-          >
-            <Text style={styles.loginButtonText}>{"Register"}</Text>
+          <TextInput value={lastname} onChangeText={setLastname} placeholder="Enter Last Name *" style={styles.input} />
+          {error.lastname && <Text style={styles.errorText}>{error.lastname}</Text>}
+
+          <TextInput value={email} onChangeText={setEmail} placeholder="Enter Email *" style={styles.input} />
+          {error.email && <Text style={styles.errorText}>{error.email}</Text>}
+
+          <TextInput value={phonenumber} onChangeText={setPhoneNumber} placeholder="Enter Phone Number *" style={styles.input} keyboardType="number-pad" />
+          {error.phonenumber && <Text style={styles.errorText}>{error.phonenumber}</Text>}
+
+          <TextInput value={password} onChangeText={setPassword} placeholder="Enter Password *" secureTextEntry style={styles.input} />
+          {error.password && <Text style={styles.errorText}>{error.password}</Text>}
+
+          <CustomToastMessage visible={isVisible} isSuccess={isSuccess} message={message} onClose={() => setVisible(false)} />
+
+          <TouchableOpacity style={styles.button} onPress={registerUser}>
+            <Text style={styles.buttonText}>Register</Text>
           </TouchableOpacity>
-
-
         </KeyboardAvoidingView>
       </View>
     </ScrollView>
   );
 };
 
-// define your styles
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    backgroundColor: "#fff"
-  },
-  input: {
-    padding: 10,
-    borderWidth: 1,
-    marginVertical: 10,
-    borderRadius: 22,
-  },
-  loginButton: {
-    backgroundColor: '#36C2CE',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 22,
-    marginTop: 20,
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  errortxt: { color: 'red', marginHorizontal: 14 }
+  container: { flex: 1, paddingHorizontal: 16, backgroundColor: '#fff' },
+  input: { padding: 10, borderWidth: 1, marginVertical: 10, borderRadius: 22 },
+  button: { backgroundColor: '#36C2CE', alignItems: 'center', padding: 10, borderRadius: 22, marginTop: 20 },
+  buttonText: { color: '#fff', fontSize: 16 },
+  errorText: { color: 'red', marginHorizontal: 14 },
+  image: { height: 200, width: 340, alignSelf: 'center' },
 });
 
-//make this component available to the app
 export default Register;
